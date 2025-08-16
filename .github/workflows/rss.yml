@@ -1,0 +1,27 @@
+name: Update RSS feed
+
+on:
+  schedule:
+    - cron: "0 */8 * * *"   # Cada 8 horas
+  workflow_dispatch:         # Permite lanzarlo manualmente
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Build feed
+        run: python build_feed.py
+      - name: Commit and push
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add docs/feed.xml
+          git commit -m "Update feed" || echo "No changes to commit"
+          git push
