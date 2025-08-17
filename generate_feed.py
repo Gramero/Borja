@@ -1,53 +1,59 @@
 import requests
 from bs4 import BeautifulSoup
-import datetime
+from datetime import datetime
+import os
 
-URL = "https://www.20minutos.es/autor/li-borja-teran/"
 FEED_PATH = "docs/feed.xml"
+SITE_URL = "https://borjateran.com/"  # URL del blog
 
 def fetch_articles():
-    r = requests.get(URL, headers={"User-Agent": "Mozilla/5.0"})
-    soup = BeautifulSoup(r.text, "html.parser")
+    resp = requests.get(SITE_URL, timeout=10)
+    resp.raise_for_status()
+    soup = BeautifulSoup(resp.text, "html.parser")
+
+    # Adaptado al HTML típico de WordPress
+    posts = soup.select("article h2 a, article h3 a")[:5]
 
     articles = []
-    for item in soup.select("article")[:5]:  # solo 5 últimos
-        title_tag = item.select_one("h2 a")
-        if not title_tag:
-            continue
-        title = title_tag.get_text(strip=True)
-        link = title_tag["href"]
+    for post in posts:
+        title = post.get_text(strip=True)
+        link = post.get("href")
         if not link.startswith("http"):
-            link = "https://www.20minutos.es" + link
-        articles.append((title, link))
-
+            link = SITE_URL.rstrip("/") + "/" + link.lstrip("/")
+        articles.append({"title": title, "link": link})
     return articles
 
 def generate_rss(articles):
-    now = datetime.datetime.utcnow().strftime("%a, %d %b %Y %H:%M:%S GMT")
-    rss = f"""<?xml version="1.0" encoding="UTF-8" ?>
-<rss version="2.0">
-<channel>
-<title>Borja Terán - 20minutos (no oficial)</title>
-<link>{URL}</link>
-<description>Últimos artículos de Borja Terán</description>
-<lastBuildDate>{now}</lastBuildDate>
-"""
+    now = datetime.utcnow().strftime("%a, %d %b %Y %H:%M:%S +0000")
+    rss_items = ""
+    for art in articles:
+        rss_items += f"""
+        <item>
+            <title>{art['title']}</title>
+            <link>{art['link']}</link>
+            <pubDate>{now}</pubDate>
+        </item>"""
 
-    for title, link in articles:
-        rss += f"""
-<item>
-<title>{title}</title>
-<link>{link}</link>
-<guid>{link}</guid>
-<pubDate>{now}</pubDate>
-</item>
-"""
-    rss += "</channel></rss>"
+    rss = f"""<?xml version="1.0" encoding="UTF-8" ?>
+    <rss version="2.0">
+      <channel>
+        <title>Borja Terán - Últimos artículos</title>
+        <link>{SITE_URL}</link>
+        <description>RSS feed generado automáticamente</description>
+        <lastBuildDate>{now}</lastBuildDate>
+        {rss_items}
+      </channel>
+    </rss>
+    """
     return rss
+
+def save_feed(rss):
+    os.makedirs(os.path.dirname(FEED_PATH), exist_ok=True)
+    with open(FEED_PATH, "w", encoding="utf-8") as f:
+        f.write(rss)
 
 if __name__ == "__main__":
     articles = fetch_articles()
-    rss_content = generate_rss(articles)
-    with open(FEED_PATH, "w", encoding="utf-8") as f:
-        f.write(rss_content)
-    print("RSS actualizado correctamente")
+    rss = generate_rss(articles)
+    save_feed(rss)
+    print(f"Feed actualizado con {len(articles)} artículos.")
