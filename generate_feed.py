@@ -1,80 +1,53 @@
 import requests
 from bs4 import BeautifulSoup
-from urllib.parse import urljoin
-from datetime import datetime, timezone
-from email.utils import format_datetime
-from xml.sax.saxutils import escape
-import os
+import datetime
 
-AUTHOR_URL = "https://www.20minutos.es/autor/li-borja-teran/"
-BASE = "https://www.20minutos.es"
-OUT = "docs/feed.xml"
+URL = "https://www.20minutos.es/autor/li-borja-teran/"
+FEED_PATH = "docs/feed.xml"
 
-HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-                  "(KHTML, like Gecko) Chrome/124.0 Safari/537.36"
-}
-
-def main():
-    try:
-        r = requests.get(AUTHOR_URL, headers=HEADERS, timeout=30)
-        r.raise_for_status()
-    except Exception as e:
-        os.makedirs("docs", exist_ok=True)
-        with open(OUT, "w", encoding="utf-8") as f:
-            f.write(f"""<?xml version="1.0" encoding="UTF-8"?>
-<rss version="2.0"><channel>
-<title>Borja Terán - 20minutos</title>
-<link>{AUTHOR_URL}</link>
-<description>Error al obtener la página: {escape(str(e))}</description>
-</channel></rss>""")
-        return
-
+def fetch_articles():
+    r = requests.get(URL, headers={"User-Agent": "Mozilla/5.0"})
     soup = BeautifulSoup(r.text, "html.parser")
 
-    # coger solo enlaces a noticias y deduplicar
-    items = []
-    seen = set()
-    for a in soup.select("article a[href]"):
-        href = a.get("href")
-        if not href:
+    articles = []
+    for item in soup.select("article")[:5]:  # solo 5 últimos
+        title_tag = item.select_one("h2 a")
+        if not title_tag:
             continue
-        if "/noticia/" not in href:   # filtramos ruido
-            continue
-        link = href if href.startswith("http") else urljoin(BASE, href)
-        if link in seen:
-            continue
-        title = a.get_text(strip=True)
-        if not title or len(title) < 6:
-            continue
-        seen.add(link)
-        items.append((title, link))
-        if len(items) == 5:           # solo los 5 últimos
-            break
+        title = title_tag.get_text(strip=True)
+        link = title_tag["href"]
+        if not link.startswith("http"):
+            link = "https://www.20minutos.es" + link
+        articles.append((title, link))
 
-    # construir RSS
-    now = format_datetime(datetime.now(timezone.utc))
-    rss_parts = [
-        '<?xml version="1.0" encoding="UTF-8"?>',
-        '<rss version="2.0"><channel>',
-        f"<title>Borja Terán - 20minutos (no oficial)</title>",
-        f"<link>{AUTHOR_URL}</link>",
-        "<description>Últimos 5 artículos del autor</description>",
-        f"<lastBuildDate>{now}</lastBuildDate>",
-    ]
-    for title, link in items:
-        rss_parts.append(
-            "<item>"
-            f"<title>{escape(title)}</title>"
-            f"<link>{escape(link)}</link>"
-            f"<guid>{escape(link)}</guid>"
-            "</item>"
-        )
-    rss_parts.append("</channel></rss>")
+    return articles
 
-    os.makedirs("docs", exist_ok=True)
-    with open(OUT, "w", encoding="utf-8") as f:
-        f.write("".join(rss_parts))
+def generate_rss(articles):
+    now = datetime.datetime.utcnow().strftime("%a, %d %b %Y %H:%M:%S GMT")
+    rss = f"""<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0">
+<channel>
+<title>Borja Terán - 20minutos (no oficial)</title>
+<link>{URL}</link>
+<description>Últimos artículos de Borja Terán</description>
+<lastBuildDate>{now}</lastBuildDate>
+"""
+
+    for title, link in articles:
+        rss += f"""
+<item>
+<title>{title}</title>
+<link>{link}</link>
+<guid>{link}</guid>
+<pubDate>{now}</pubDate>
+</item>
+"""
+    rss += "</channel></rss>"
+    return rss
 
 if __name__ == "__main__":
-    main()
+    articles = fetch_articles()
+    rss_content = generate_rss(articles)
+    with open(FEED_PATH, "w", encoding="utf-8") as f:
+        f.write(rss_content)
+    print("RSS actualizado correctamente")
