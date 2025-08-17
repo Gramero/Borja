@@ -1,6 +1,8 @@
 name: Update RSS Feed
 
 on:
+permissions:
+  contents: write
   schedule:
     - cron: "0 */12 * * *"   # cada 12 horas
   workflow_dispatch:
