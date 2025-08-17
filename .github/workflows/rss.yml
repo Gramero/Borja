@@ -3,22 +3,24 @@ name: Update RSS
 on:
   schedule:
     - cron: "0 8 * * *"   # cada día a las 08:00 UTC
-  workflow_dispatch:      # permite ejecutarlo a mano
+  workflow_dispatch:      # botón "Run workflow" manual
+
+permissions:
+  contents: write
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
-          python-version: '3.x'
-      - name: Install dependencies
+          python-version: '3.11'
+      - name: Install deps
         run: pip install requests beautifulsoup4
-      - name: Run script
+      - name: Build feed
         run: python generate_feed.py
-      - name: Commit changes
+      - name: Commit feed
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
