@@ -1,9 +1,9 @@
-name: Update RSS feed
+name: Update RSS
 
 on:
   schedule:
-    - cron: "0 */8 * * *"   # Cada 8 horas
-  workflow_dispatch:         # Permite lanzarlo manualmente
+    - cron: "0 8 * * *"   # cada día a las 08:00 UTC
+  workflow_dispatch:      # permite ejecutarlo a mano
 
 jobs:
   build:
@@ -15,13 +15,13 @@ jobs:
         with:
           python-version: '3.x'
       - name: Install dependencies
-        run: pip install -r requirements.txt
-      - name: Build feed
-        run: python build_feed.py
-      - name: Commit and push
+        run: pip install requests beautifulsoup4
+      - name: Run script
+        run: python generate_feed.py
+      - name: Commit changes
         run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
           git add docs/feed.xml
-          git commit -m "Update feed" || echo "No changes to commit"
+          git commit -m "Update RSS feed" || echo "No changes"
           git push
