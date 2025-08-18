@@ -32,10 +32,10 @@ def main():
 
     soup = BeautifulSoup(r.text, "html.parser")
 
-    # coger solo enlaces a noticias y deduplicar
+    # coger solo enlaces correctos en titulares
     items = []
     seen = set()
-    for a in soup.select("article a[href]"):
+    for a in soup.select("h2.media-title a[href]"):
         href = a.get("href")
         if not href:
             continue
@@ -78,4 +78,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
