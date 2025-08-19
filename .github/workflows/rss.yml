@@ -11,27 +11,32 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
         with:
-          python-version: "3.x"
+          submodules: true
 
-      - name: Install dependencies
-        run: pip install requests beautifulsoup4
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
 
-      - name: Generate feed
+      - name: Run RSS-Bridge
         run: |
           mkdir -p docs
-          python generate_feed.py
+          php rss-bridge/index.php \
+            --action=display \
+            --bridge=GoogleSearchBridge \
+            --format=Atom \
+            --q="site:20minutos.es/autor/li-borja-teran/" \
+            > docs/feed.xml
 
-      - name: Commit and push changes
+      - name: Commit and push
         run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
           git add docs/feed.xml
-          git commit -m "Update feed" || echo "No changes to commit"
+          git commit -m "update feed" || echo "No changes"
           git push
