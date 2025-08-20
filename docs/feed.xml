@@ -1,1 +1,16 @@
-<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"><channel><title>Borja Terán - 20minutos (no oficial)</title><link>https://www.20minutos.es/autor/li-borja-teran/</link><description>Últimos 5 artículos del autor</description><lastBuildDate>Tue, 19 Aug 2025 01:08:12 +0000</lastBuildDate></channel></rss>
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0">
+  <channel>
+    <title>Borja Terán</title>
+    <link>https://www.20minutos.es/opinion/borja-teran/</link>
+    <description>Artículos de Borja Terán</description>
+
+    <item>
+      <title>Artículo de ejemplo</title>
+      <link>https://www.20minutos.es/opinion/borja-teran/articulo-ejemplo/</link>
+      <pubDate>Wed, 21 Aug 2025 10:00:00 GMT</pubDate>
+      <description>Este es un resumen de prueba</description>
+    </item>
+
+  </channel>
+</rss>
