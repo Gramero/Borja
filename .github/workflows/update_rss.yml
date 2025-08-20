@@ -1,42 +1,32 @@
-name: Update RSS Feed
+name: Update RSS
 
 on:
   schedule:
-    - cron: "0 */12 * * *"   # cada 12 horas
+    - cron: "0 * * * *"   # cada hora
   workflow_dispatch:
-
-permissions:
-  contents: write
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
-        with:
-          submodules: true
 
-      - name: Set up PHP
-        uses: shivammathur/setup-php@v2
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
-          php-version: '8.2'
+          python-version: "3.x"
 
-      - name: Run RSS-Bridge
-        run: |
-          mkdir -p docs
-          php rss-bridge/index.php \
-            --action=display \
-            --bridge=GoogleSearchBridge \
-            --format=Atom \
-            --q="site:20minutos.es/autor/li-borja-teran/" \
-            > docs/feed.xml
+      - name: Install dependencies
+        run: pip install requests feedparser
+
+      - name: Run script
+        run: python scripts/update_rss.py
 
       - name: Commit and push
         run: |
-          git config --global user.name "github-actions"
-          git config --global user.email "github-actions@github.com"
+          git config --local user.email "actions@github.com"
+          git config --local user.name "GitHub Actions"
           git add docs/feed.xml
-          git commit -m "update feed" || echo "No changes"
+          git commit -m "Update RSS feed" || echo "No changes to commit"
           git push
