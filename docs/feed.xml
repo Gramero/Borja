@@ -1,16 +1,18 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<rss version="2.0">
-  <channel>
-    <title>Borja Terán</title>
-    <link>https://www.20minutos.es/opinion/borja-teran/</link>
-    <description>Artículos de Borja Terán</description>
+import datetime
 
-    <item>
-      <title>Artículo de ejemplo</title>
-      <link>https://www.20minutos.es/opinion/borja-teran/articulo-ejemplo/</link>
-      <pubDate>Wed, 21 Aug 2025 10:00:00 GMT</pubDate>
-      <description>Este es un resumen de prueba</description>
-    </item>
-
-  </channel>
-</rss>
+def generate_feed():
+    # Datos de ejemplo (esto normalmente vendría de un scrapeo o API)
+    articles = [
+        {
+            "title": "Ejemplo 1: La tele que nos hizo soñar",
+            "link": "https://www.20minutos.es/opinion/borja-teran/ejemplo-1/",
+            "description": "Un repaso a los programas que marcaron época.",
+            "pubDate": datetime.datetime.utcnow().strftime("%a, %d %b %Y %H:%M:%S GMT")
+        },
+        {
+            "title": "Ejemplo 2: El futuro del entretenimiento",
+            "link": "https://www.20minutos.es/opinion/borja-teran/ejemplo-2/",
+            "description": "Cómo están cambiando las plataformas el consumo audiovisual.",
+            "pubDate": datetime.datetime.utcnow().strftime("%a, %d %b %Y %H:%M:%S GMT")
+        }
+    ]
