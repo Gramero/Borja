@@ -16,3 +16,29 @@ def generate_feed():
             "pubDate": datetime.datetime.utcnow().strftime("%a, %d %b %Y %H:%M:%S GMT")
         }
     ]
+
+    # Construcción XML (RSS 2.0)
+    rss = '<?xml version="1.0" encoding="UTF-8" ?>\n'
+    rss += '<rss version="2.0">\n'
+    rss += '  <channel>\n'
+    rss += '    <title>Borja Terán</title>\n'
+    rss += '    <link>https://www.20minutos.es/opinion/borja-teran/</link>\n'
+    rss += '    <description>Artículos de Borja Terán</description>\n'
+
+    for art in articles:
+        rss += '    <item>\n'
+        rss += f'      <title>{art["title"]}</title>\n'
+        rss += f'      <link>{art["link"]}</link>\n'
+        rss += f'      <pubDate>{art["pubDate"]}</pubDate>\n'
+        rss += f'      <description>{art["description"]}</description>\n'
+        rss += '    </item>\n'
+
+    rss += '  </channel>\n'
+    rss += '</rss>\n'
+
+    # Guardar archivo en docs/feed.xml
+    with open("docs/feed.xml", "w", encoding="utf-8") as f:
+        f.write(rss)
+
+if __name__ == "__main__":
+    generate_feed()
